@@ -1,0 +1,14 @@
+{
+  "tailwindCSS.includeLanguages": {
+    "cshtml": "html"
+  },
+  "tailwindCSS.classAttributes": [
+    "class",
+    "className",
+    "ngClass"
+  ],
+  "tailwindCSS.experimental.classRegex": [],
+  "editor.quickSuggestions": {
+    "strings": "on"
+  }
+}
