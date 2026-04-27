@@ -1,0 +1,23 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v10.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v10.0": {
+      "E-Grocery/1.0.0": {
+        "runtime": {
+          "E-Grocery.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "E-Grocery/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}
