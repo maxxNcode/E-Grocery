@@ -1,0 +1,14 @@
+@model IEnumerable<E_Grocery.Models.Product>
+
+@{
+    ViewData["Title"] = "Store";
+}
+
+<!-- Your Tailwind UI here -->
+@foreach (var product in Model)
+{
+    <div>
+        <h3>@product.Name</h3>
+        <p>₱@product.Price</p>
+    </div>
+}
