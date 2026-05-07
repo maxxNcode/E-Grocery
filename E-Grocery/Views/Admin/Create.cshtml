@@ -5,18 +5,35 @@
 }
 
 <div class="min-h-[calc(100vh-120px)] flex items-center justify-center bg-gray-50 px-4 py-8">
-    <div class="w-full max-w-lg bg-white rounded-2xl shadow-lg p-8">
-        <div class="text-center mb-8">
-            <div class="inline-flex items-center justify-center w-16 h-16 bg-[#2e7d32] rounded-full mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
+    <div class="w-full max-w-lg space-y-6">
+
+        <div class="grid grid-cols-3 gap-4">
+            <div class="bg-white rounded-xl shadow-sm p-4 text-center">
+                <div class="text-xs text-gray-500 uppercase tracking-wide mb-1">Total Products</div>
+                <div class="text-2xl font-bold text-[#2e7d32]">24</div>
             </div>
-            <h2 class="text-2xl font-bold text-gray-800">Add New Product</h2>
-            <p class="text-gray-500 mt-1">Fill in the product details below</p>
+            <div class="bg-white rounded-xl shadow-sm p-4 text-center">
+                <div class="text-xs text-gray-500 uppercase tracking-wide mb-1">Added to Cart</div>
+                <div class="text-2xl font-bold text-[#2e7d32]">12</div>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm p-4 text-center">
+                <div class="text-xs text-gray-500 uppercase tracking-wide mb-1">Sold</div>
+                <div class="text-2xl font-bold text-[#2e7d32]">8</div>
+            </div>
         </div>
 
-        <form asp-action="Create" method="post" class="space-y-5">
+        <div class="bg-white rounded-2xl shadow-lg p-8">
+            <div class="text-center mb-8">
+                <div class="inline-flex items-center justify-center w-16 h-16 bg-[#2e7d32] rounded-full mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-800">Add New Product</h2>
+                <p class="text-gray-500 mt-1">Fill in the product details below</p>
+            </div>
+
+            <form asp-action="Create" method="post" class="space-y-5">
             <div asp-validation-summary="ModelOnly" class="text-red-500 text-sm"></div>
 
             <div>
@@ -54,6 +71,7 @@
             </a>
         </div>
     </div>
+</div>
 </div>
 
 @section Scripts {
