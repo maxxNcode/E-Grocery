@@ -1,12 +1,48 @@
 @model IEnumerable<E_Grocery.Models.Product>
 
 @{
-    ViewData["Title"] = "Store";
+    ViewData["Title"] = "Products";
 }
 
-<!-- Your Tailwind UI here -->
-@* @foreach (var product in Model)
-{
-   
-} *@
+<div class="min-h-screen bg-gray-50 px-4 py-8">
+    <div class="max-w-6xl mx-auto">
+        <h1 class="text-3xl font-bold text-gray-800 mb-2">Our Products</h1>
+        <p class="text-gray-500 mb-8">Fresh groceries delivered to your door</p>
 
+        @if (!Model.Any())
+        {
+            <div class="text-center py-16">
+                <p class="text-gray-400 text-lg">No products available yet.</p>
+                <p class="text-gray-400 text-sm mt-2">Visit /Admin/Create to add your first product.</p>
+            </div>
+        }
+        else
+        {
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                @foreach (var product in Model)
+                {
+                    <div class="bg-white rounded-2xl shadow-sm hover:shadow-md transition p-5">
+                        <div class="h-40 bg-gray-100 rounded-xl mb-4 flex items-center justify-center overflow-hidden">
+                            @if (!string.IsNullOrEmpty(product.ImageUrl))
+                            {
+                                <img src="@product.ImageUrl" alt="@product.Name" class="h-full w-full object-cover" />
+                            }
+                            else
+                            {
+                                <span class="text-gray-300 text-sm">No image</span>
+                            }
+                        </div>
+                        <h3 class="font-semibold text-gray-800 text-lg">@product.Name</h3>
+                        <p class="text-gray-500 text-sm mt-1 line-clamp-2">@product.Description</p>
+                        <div class="flex items-center justify-between mt-4">
+                            <span class="text-[#2e7d32] font-bold text-lg">₱@product.Price.ToString("N2")</span>
+                            <button class="bg-[#2e7d32] text-white px-3 py-1.5 rounded-lg text-sm hover:bg-[#1b5e20] transition">
+                                Add to Cart
+                            </button>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>
