@@ -21,7 +21,7 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 @foreach (var product in Model)
                 {
-                    <div class="bg-white rounded-2xl shadow-sm hover:shadow-md transition p-5">
+                    <div onclick="openModal(@product.Id)" class="bg-white rounded-2xl shadow-sm hover:shadow-md transition p-5 cursor-pointer">
                         <div class="h-40 bg-gray-100 rounded-xl mb-4 flex items-center justify-center overflow-hidden">
                             @if (!string.IsNullOrEmpty(product.ImageUrl))
                             {
@@ -36,8 +36,47 @@
                         <p class="text-gray-500 text-sm mt-1 line-clamp-2">@product.Description</p>
                         <div class="flex items-center justify-between mt-4">
                             <span class="text-[#2e7d32] font-bold text-lg">₱@product.Price.ToString("N2")</span>
-                            <button class="bg-[#2e7d32] text-white px-3 py-1.5 rounded-lg text-sm hover:bg-[#1b5e20] transition">
+                            <button onclick="event.stopPropagation(); openModal(@product.Id)" class="bg-[#2e7d32] text-white px-3 py-1.5 rounded-lg text-sm hover:bg-[#1b5e20] transition">
                                 Add to Cart
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Modal for this product -->
+                    <div id="modal-@product.Id" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4">
+                        <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 relative" onclick="event.stopPropagation()">
+                            <button onclick="closeModal(@product.Id)" class="absolute top-3 right-3 text-gray-400 hover:text-gray-600 text-xl font-bold">&times;</button>
+
+                            <div class="h-48 bg-gray-100 rounded-xl mb-4 flex items-center justify-center overflow-hidden">
+                                @if (!string.IsNullOrEmpty(product.ImageUrl))
+                                {
+                                    <img src="@product.ImageUrl" alt="@product.Name" class="h-full w-full object-cover" />
+                                }
+                                else
+                                {
+                                    <span class="text-gray-300 text-sm">No image</span>
+                                }
+                            </div>
+
+                            <h2 class="text-2xl font-bold text-gray-800 mb-2">@product.Name</h2>
+                            <p class="text-gray-600 text-sm mb-4 leading-relaxed">@product.Description</p>
+
+                            <div class="flex items-center gap-6 text-sm text-gray-500 mb-6">
+                                <span>Price: <strong class="text-[#2e7d32]">₱@product.Price.ToString("N2")</strong></span>
+                                <span>In Stock: <strong class="text-[#2e7d32]">@product.StockQty</strong></span>
+                            </div>
+
+                            <div class="flex items-center gap-4 mb-4">
+                                <label class="text-sm font-medium text-gray-700">Quantity:</label>
+                                <div class="flex items-center border border-gray-300 rounded-lg overflow-hidden">
+                                    <button type="button" onclick="adjustQty(@product.Id, -1, @product.StockQty)" class="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold">-</button>
+                                    <input id="qty-@product.Id" type="number" value="1" min="1" max="@product.StockQty" readonly class="w-12 text-center py-1 border-x border-gray-300 text-sm" />
+                                    <button type="button" onclick="adjustQty(@product.Id, 1, @product.StockQty)" class="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold">+</button>
+                                </div>
+                            </div>
+
+                            <button class="w-full bg-[#2e7d32] text-white font-semibold py-2.5 rounded-lg hover:bg-[#1b5e20] transition duration-200 shadow-md">
+                                Add to Cart — ₱@product.Price.ToString("N2")
                             </button>
                         </div>
                     </div>
@@ -46,3 +85,33 @@
         }
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        function openModal(id) {
+            document.getElementById('modal-' + id).classList.remove('hidden');
+            document.getElementById('modal-' + id).classList.add('flex');
+        }
+
+        function closeModal(id) {
+            document.getElementById('modal-' + id).classList.remove('flex');
+            document.getElementById('modal-' + id).classList.add('hidden');
+        }
+
+        // Close modal when clicking outside
+        document.addEventListener('click', function(event) {
+            if (event.target.classList.contains('bg-black/50')) {
+                event.target.classList.remove('flex');
+                event.target.classList.add('hidden');
+            }
+        });
+
+        function adjustQty(id, change, max) {
+            var input = document.getElementById('qty-' + id);
+            var val = parseInt(input.value) + change;
+            if (val >= 1 && val <= max) {
+                input.value = val;
+            }
+        }
+    </script>
+}

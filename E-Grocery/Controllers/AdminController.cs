@@ -31,7 +31,7 @@ namespace E_Grocery.Controllers
                     Description = model.Description,
                     Price = model.Price,
                     ImageUrl = model.Image,
-                    StockQty = 0   // default, or add a field to the form later
+                    StockQty = model.StockQty 
                 };
 
                 _context.Products.Add(product);
