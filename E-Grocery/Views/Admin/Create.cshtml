@@ -1,7 +1,8 @@
 @model E_Grocery.Models.ProductCreateViewModel
 
 @{
-    ViewData[index: "Title"] = Model?.Id > 0 ? "Edit Product" : "Add New Product";
+    var isEdit = Model != null && Model.Id > 0;
+    ViewData[index: "Title"] = isEdit ? "Edit Product" : "Add New Product";
     var products = ViewData["Products"] as List<E_Grocery.Models.Product> ?? new List<E_Grocery.Models.Product>();
 }
 
@@ -9,18 +10,14 @@
     <div class="max-w-6xl mx-auto">
 
         <!-- Stats Cards -->
-        <div class="grid grid-cols-3 gap-4 mb-8">
+        <div class="grid grid-cols-2 gap-4 mb-8">
             <div class="bg-white rounded-xl shadow-sm p-4 text-center">
                 <div class="text-xs text-gray-500 uppercase tracking-wide mb-1">Total Products</div>
                 <div class="text-2xl font-bold text-[#2e7d32]">@products.Count</div>
             </div>
             <div class="bg-white rounded-xl shadow-sm p-4 text-center">
                 <div class="text-xs text-gray-500 uppercase tracking-wide mb-1">Added to Cart</div>
-                <div class="text-2xl font-bold text-[#2e7d32]">12</div>
-            </div>
-            <div class="bg-white rounded-xl shadow-sm p-4 text-center">
-                <div class="text-xs text-gray-500 uppercase tracking-wide mb-1">Sold</div>
-                <div class="text-2xl font-bold text-[#2e7d32]">8</div>
+                <div class="text-2xl font-bold text-[#2e7d32]">@ViewData["CartCount"]</div>
             </div>
         </div>
 
@@ -30,15 +27,15 @@
             <div class="bg-white rounded-2xl shadow-lg p-8">
                 <div class="text-center mb-8">
                     <h2 class="text-2xl font-bold text-gray-800">
-                        @(Model?.Id > 0 ? "Edit Product" : "Add New Product")
+                        @(isEdit ? "Edit Product" : "Add New Product")
                     </h2>
                     <p class="text-gray-500 mt-1">
-                        @(Model?.Id > 0 ? "Update the product details below" : "Fill in the product details below")
+                        @(isEdit ? "Update the product details below" : "Fill in the product details below")
                     </p>
                 </div>
 
                 <form asp-action="Create" method="post" class="space-y-5">
-                    @if (Model?.Id > 0)
+                    @if (isEdit)
                     {
                         <input type="hidden" asp-for="Id" />
                     }
@@ -75,12 +72,12 @@
                     </div>
 
                     <button type="submit" class="w-full bg-[#2e7d32] text-white font-semibold py-2.5 rounded-lg hover:bg-[#1b5e20] transition duration-200 shadow-md">
-                        @(Model?.Id > 0 ? "Update Product" : "Save Product")
+                        @(isEdit ? "Update Product" : "Save Product")
                     </button>
 
-                    @if (Model?.Id > 0)
+                    @if (isEdit)
                     {
-                        <a asp-action="Create" asp-route-id="" class="block text-center text-sm text-gray-500 hover:text-gray-700 font-medium transition mt-3">
+                        <a asp-action="Create" class="block text-center text-sm text-gray-500 hover:text-gray-700 font-medium transition mt-3">
                             Cancel — Add New Product
                         </a>
                     }
@@ -97,7 +94,7 @@
             <div class="bg-white rounded-2xl shadow-lg p-8">
                 <h3 class="text-xl font-bold text-gray-800 mb-6">Existing Products</h3>
 
-                @if (!products.Any())
+                @if (products.Count == 0)
                 {
                     <div class="text-center py-12">
                         <p class="text-gray-400 text-lg">No products yet.</p>
@@ -115,7 +112,7 @@
                                     <div class="text-sm text-gray-500 mt-0.5">₱@p.Price.ToString("N2") • Stock: @p.StockQty</div>
                                 </div>
                                 <div class="flex gap-2 ml-4 shrink-0">
-                                    <a asp-action="Create" asp-route-id="@p.Id"
+                                    <a asp-action="Edit" asp-route-id="@p.Id"
                                        class="px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg text-sm hover:bg-blue-100 transition font-medium">
                                         Edit
                                     </a>

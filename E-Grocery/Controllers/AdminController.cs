@@ -14,31 +14,44 @@ namespace E_Grocery.Controllers
         }
 
         [HttpGet]
-        public IActionResult Create(int? id)
+        public IActionResult Create()
         {
-            // If id is provided, load product for editing
-            if (id.HasValue)
+            ViewData["Products"] = _context.Products.ToList();
+            ViewData["CartCount"] = _context.CartItems.ToList().Count;
+            return View();
+        }
+
+        [HttpGet]
+        public IActionResult Edit(int id)
+        {
+            var products = _context.Products.ToList();
+            Product product = null;
+            foreach (var p in products)
             {
-                var product = _context.Products.Find(id.Value);
-                if (product != null)
+                if (p.Id == id)
                 {
-                    var model = new ProductCreateViewModel
-                    {
-                        Id = product.Id,
-                        Name = product.Name,
-                        Description = product.Description,
-                        Price = product.Price,
-                        Image = product.ImageUrl,
-                        StockQty = product.StockQty
-                    };
-                    ViewData["Products"] = _context.Products.ToList();
-                    return View(model);
+                    product = p;
+                    break;
                 }
             }
 
-            // Fresh create mode — just show the list
-            ViewData["Products"] = _context.Products.ToList();
-            return View();
+            if (product != null)
+            {
+                var model = new ProductCreateViewModel
+                {
+                    Id = product.Id,
+                    Name = product.Name,
+                    Description = product.Description,
+                    Price = product.Price,
+                    Image = product.ImageUrl,
+                    StockQty = product.StockQty
+                };
+                ViewData["Products"] = _context.Products.ToList();
+                ViewData["CartCount"] = _context.CartItems.ToList().Count;
+                return View("Create", model);
+            }
+
+            return RedirectToAction("Create");
         }
 
         [HttpPost]
@@ -50,7 +63,17 @@ namespace E_Grocery.Controllers
                 if (model.Id > 0)
                 {
                     // UPDATE existing product
-                    var product = _context.Products.Find(model.Id);
+                    var products = _context.Products.ToList();
+                    Product product = null;
+                    foreach (var p in products)
+                    {
+                        if (p.Id == model.Id)
+                        {
+                            product = p;
+                            break;
+                        }
+                    }
+
                     if (product != null)
                     {
                         product.Name = model.Name;
@@ -76,11 +99,11 @@ namespace E_Grocery.Controllers
                     _context.SaveChanges();
                 }
 
-                return RedirectToAction(nameof(Create), new { id = (int?)null });
+                return RedirectToAction("Create");
             }
 
-            // Validation failed — reload the list so it still shows
             ViewData["Products"] = _context.Products.ToList();
+            ViewData["CartCount"] = _context.CartItems.ToList().Count;
             return View(model);
         }
 
@@ -88,7 +111,17 @@ namespace E_Grocery.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Delete(int id)
         {
-            var product = _context.Products.Find(id);
+            var products = _context.Products.ToList();
+            Product product = null;
+            foreach (var p in products)
+            {
+                if (p.Id == id)
+                {
+                    product = p;
+                    break;
+                }
+            }
+
             if (product != null)
             {
                 _context.Products.Remove(product);

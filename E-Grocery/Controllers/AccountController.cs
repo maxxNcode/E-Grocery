@@ -25,8 +25,16 @@ namespace E_Grocery.Controllers
         {
             if (ModelState.IsValid)
             {
-                var user = _context.Users
-                    .FirstOrDefault(u => u.Email == model.Email && u.Password == model.Password);
+                var users = _context.Users.ToList();
+                User user = null;
+                foreach (var u in users)
+                {
+                    if (u.Email == model.Email && u.Password == model.Password)
+                    {
+                        user = u;
+                        break;
+                    }
+                }
 
                 if (user != null)
                 {
