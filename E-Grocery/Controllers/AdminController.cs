@@ -76,7 +76,7 @@ namespace E_Grocery.Controllers
                     _context.SaveChanges();
                 }
 
-                return RedirectToAction("Create");
+                return RedirectToAction(nameof(Create), new { id = (int?)null });
             }
 
             // Validation failed — reload the list so it still shows
