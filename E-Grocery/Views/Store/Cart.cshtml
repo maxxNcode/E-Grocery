@@ -1,0 +1,64 @@
+@model List<E_Grocery.Models.CartItem>
+
+@{
+    ViewData["Title"] = "Cart";
+    var total = Model.Sum(item => item.Price * item.Quantity);
+}
+
+<div class="min-h-[calc(100vh-120px)] bg-gray-50 px-4 py-8">
+    <div class="max-w-2xl mx-auto">
+        <h1 class="text-2xl font-bold text-gray-800 mb-6">Your Cart</h1>
+
+        @if (!Model.Any())
+        {
+            <div class="bg-white rounded-2xl shadow-sm p-12 text-center">
+                <p class="text-gray-400 text-lg">Your cart is empty.</p>
+                <a asp-action="Index" class="inline-block mt-4 text-[#2e7d32] font-medium hover:underline">Browse Products</a>
+            </div>
+        }
+        else
+        {
+            <div class="space-y-3 mb-6">
+                @foreach (var item in Model)
+                {
+                    <div class="flex items-center gap-4 bg-white rounded-xl shadow-sm p-4">
+                        <div class="h-16 w-16 bg-gray-100 rounded-lg flex-shrink-0 overflow-hidden">
+                            @if (!string.IsNullOrEmpty(item.ImageUrl))
+                            {
+                                <img src="@item.ImageUrl" alt="@item.ProductName" class="h-full w-full object-cover" />
+                            }
+                            else
+                            {
+                                <span class="text-gray-300 text-xs flex items-center justify-center h-full">No image</span>
+                            }
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="font-semibold text-gray-800 truncate">@item.ProductName</div>
+                            <div class="text-sm text-gray-500">Qty: @item.Quantity x ₱@item.Price.ToString("N2")</div>
+                        </div>
+                        <div class="font-bold text-[#2e7d32]">₱@((item.Price * item.Quantity).ToString("N2"))</div>
+                    </div>
+                }
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <span class="text-lg font-semibold text-gray-700">Total:</span>
+                    <span class="text-2xl font-bold text-[#2e7d32]">₱@total.ToString("N2")</span>
+                </div>
+
+                <form asp-action="PlaceOrder" method="post">
+                    <button type="submit" class="w-full bg-[#2e7d32] text-white font-semibold py-3 rounded-lg hover:bg-[#1b5e20] transition duration-200 shadow-md">
+                        Place Order
+                    </button>
+                </form>
+
+                <div class="mt-4 text-center">
+                    <a asp-action="Index" class="text-sm text-gray-500 hover:text-gray-700 font-medium transition">
+                        Continue Shopping
+                    </a>
+                </div>
+            </div>
+        }
+    </div>
+</div>

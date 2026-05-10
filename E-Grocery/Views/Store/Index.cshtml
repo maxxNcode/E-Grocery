@@ -75,9 +75,13 @@
                                 </div>
                             </div>
 
-                            <button class="w-full bg-[#2e7d32] text-white font-semibold py-2.5 rounded-lg hover:bg-[#1b5e20] transition duration-200 shadow-md">
-                                Add to Cart — ₱@product.Price.ToString("N2")
-                            </button>
+                            <form asp-action="AddToCart" method="post" class="mt-2">
+                                <input type="hidden" name="productId" value="@product.Id" />
+                                <input type="hidden" name="quantity" id="form-qty-@product.Id" value="1" />
+                                <button type="submit" class="w-full bg-[#2e7d32] text-white font-semibold py-2.5 rounded-lg hover:bg-[#1b5e20] transition duration-200 shadow-md">
+                                    Add to Cart — ₱@product.Price.ToString("N2")
+                                </button>
+                            </form>
                         </div>
                     </div>
                 }
@@ -108,9 +112,11 @@
 
         function adjustQty(id, change, max) {
             var input = document.getElementById('qty-' + id);
+            var formInput = document.getElementById('form-qty-' + id);
             var val = parseInt(input.value) + change;
             if (val >= 1 && val <= max) {
                 input.value = val;
+                if (formInput) formInput.value = val;
             }
         }
     </script>
