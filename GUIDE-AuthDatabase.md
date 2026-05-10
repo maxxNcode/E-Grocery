@@ -805,3 +805,355 @@ Replace the entire file with:
 | `Views/Admin/Create.cshtml` | Added `StockQty` input field |
 | `Controllers/AdminController.cs` | Map `model.StockQty` to `product.StockQty` |
 | `Views/Store/Index.cshtml` | Added product detail modal with full description, image, price, stock, and quantity selector |
+
+---
+
+## Step 14: Show Product List on the Admin Page
+
+Let's display all existing products on the same page as the create form, with **Edit** and **Delete** buttons for each product.
+
+### 14A: Add `Id` to `ProductCreateViewModel`
+
+Open: `E-Grocery/Models/ProductCreateViewModel.cs`
+
+Add an `Id` property at the top:
+
+```csharp
+public int Id { get; set; }   // 0 = create mode, >0 = edit mode
+```
+
+This lets the same form handle both creating new products and editing existing ones.
+
+### 14B: Rewrite `AdminController`
+
+Open: `E-Grocery/Controllers/AdminController.cs`
+
+Replace the entire file with:
+
+```csharp
+using E_Grocery.Data;
+using E_Grocery.Models;
+using Microsoft.AspNetCore.Mvc;
+
+namespace E_Grocery.Controllers
+{
+    public class AdminController : Controller
+    {
+        private readonly AppDbContext _context;
+
+        public AdminController(AppDbContext context)
+        {
+            _context = context;
+        }
+
+        [HttpGet]
+        public IActionResult Create(int? id)
+        {
+            // If id is provided, load product for editing
+            if (id.HasValue)
+            {
+                var product = _context.Products.Find(id.Value);
+                if (product != null)
+                {
+                    var model = new ProductCreateViewModel
+                    {
+                        Id = product.Id,
+                        Name = product.Name,
+                        Description = product.Description,
+                        Price = product.Price,
+                        Image = product.ImageUrl,
+                        StockQty = product.StockQty
+                    };
+                    ViewData["Products"] = _context.Products.ToList();
+                    return View(model);
+                }
+            }
+
+            // Fresh create mode — just show the list
+            ViewData["Products"] = _context.Products.ToList();
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Create(ProductCreateViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                if (model.Id > 0)
+                {
+                    // UPDATE existing product
+                    var product = _context.Products.Find(model.Id);
+                    if (product != null)
+                    {
+                        product.Name = model.Name;
+                        product.Description = model.Description;
+                        product.Price = model.Price;
+                        product.ImageUrl = model.Image;
+                        product.StockQty = model.StockQty;
+                        _context.SaveChanges();
+                    }
+                }
+                else
+                {
+                    // CREATE new product
+                    var product = new Product
+                    {
+                        Name = model.Name,
+                        Description = model.Description,
+                        Price = model.Price,
+                        ImageUrl = model.Image,
+                        StockQty = model.StockQty
+                    };
+                    _context.Products.Add(product);
+                    _context.SaveChanges();
+                }
+
+                return RedirectToAction("Create");
+            }
+
+            // Validation failed — reload the list so it still shows
+            ViewData["Products"] = _context.Products.ToList();
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Delete(int id)
+        {
+            var product = _context.Products.Find(id);
+            if (product != null)
+            {
+                _context.Products.Remove(product);
+                _context.SaveChanges();
+            }
+            return RedirectToAction("Create");
+        }
+    }
+}
+```
+
+**Why?**
+- `Create(int? id)` loads a product for editing when an `id` is passed
+- `Create(ProductCreateViewModel model)` checks `model.Id`: if `> 0` it updates, otherwise it creates
+- `Delete(int id)` finds and removes the product, then saves
+- `ViewData["Products"]` passes the product list to the view (same idea as passing data to a view, just using the built-in dictionary)
+
+### 14C: Rewrite the Create View
+
+Open: `E-Grocery/Views/Admin/Create.cshtml`
+
+Replace the entire file with:
+
+```html
+@model E_Grocery.Models.ProductCreateViewModel
+
+@{
+    ViewData[index: "Title"] = Model?.Id > 0 ? "Edit Product" : "Add New Product";
+    var products = ViewData["Products"] as List<E_Grocery.Models.Product> ?? new List<E_Grocery.Models.Product>();
+}
+
+<div class="min-h-[calc(100vh-120px)] bg-gray-50 px-4 py-8">
+    <div class="max-w-6xl mx-auto">
+
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-3 gap-4 mb-8">
+            <div class="bg-white rounded-xl shadow-sm p-4 text-center">
+                <div class="text-xs text-gray-500 uppercase tracking-wide mb-1">Total Products</div>
+                <div class="text-2xl font-bold text-[#2e7d32]">@products.Count</div>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm p-4 text-center">
+                <div class="text-xs text-gray-500 uppercase tracking-wide mb-1">Added to Cart</div>
+                <div class="text-2xl font-bold text-[#2e7d32]">12</div>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm p-4 text-center">
+                <div class="text-xs text-gray-500 uppercase tracking-wide mb-1">Sold</div>
+                <div class="text-2xl font-bold text-[#2e7d32]">8</div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+            <!-- Form -->
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <div class="text-center mb-8">
+                    <div class="inline-flex items-center justify-center w-16 h-16 bg-[#2e7d32] rounded-full mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                        </svg>
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-800">
+                        @(Model?.Id > 0 ? "Edit Product" : "Add New Product")
+                    </h2>
+                    <p class="text-gray-500 mt-1">
+                        @(Model?.Id > 0 ? "Update the product details below" : "Fill in the product details below")
+                    </p>
+                </div>
+
+                <form asp-action="Create" method="post" class="space-y-5">
+                    <input type="hidden" asp-for="Id" />
+                    <div asp-validation-summary="ModelOnly" class="text-red-500 text-sm"></div>
+
+                    <div>
+                        <label asp-for="Name" class="block text-sm font-medium text-gray-700 mb-1"></label>
+                        <input asp-for="Name" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2e7d32] focus:border-transparent transition" placeholder="e.g. Apple" />
+                        <span asp-validation-for="Name" class="text-red-500 text-xs mt-1 block"></span>
+                    </div>
+
+                    <div>
+                        <label asp-for="Description" class="block text-sm font-medium text-gray-700 mb-1"></label>
+                        <textarea asp-for="Description" rows="3" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2e7d32] focus:border-transparent transition resize-none" placeholder="e.g. Fresh red apple from the farm"></textarea>
+                        <span asp-validation-for="Description" class="text-red-500 text-xs mt-1 block"></span>
+                    </div>
+
+                    <div>
+                        <label asp-for="Price" class="block text-sm font-medium text-gray-700 mb-1"></label>
+                        <input asp-for="Price" type="number" step="0.01" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2e7d32] focus:border-transparent transition" placeholder="0.00" />
+                        <span asp-validation-for="Price" class="text-red-500 text-xs mt-1 block"></span>
+                    </div>
+
+                    <div>
+                        <label asp-for="Image" class="block text-sm font-medium text-gray-700 mb-1"></label>
+                        <input asp-for="Image" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2e7d32] focus:border-transparent transition" placeholder="e.g. /images/apple.jpg" />
+                        <span asp-validation-for="Image" class="text-red-500 text-xs mt-1 block"></span>
+                    </div>
+
+                    <div>
+                        <label asp-for="StockQty" class="block text-sm font-medium text-gray-700 mb-1"></label>
+                        <input asp-for="StockQty" type="number" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2e7d32] focus:border-transparent transition" placeholder="e.g. 100" />
+                        <span asp-validation-for="StockQty" class="text-red-500 text-xs mt-1 block"></span>
+                    </div>
+
+                    <button type="submit" class="w-full bg-[#2e7d32] text-white font-semibold py-2.5 rounded-lg hover:bg-[#1b5e20] transition duration-200 shadow-md">
+                        @(Model?.Id > 0 ? "Update Product" : "Save Product")
+                    </button>
+
+                    @if (Model?.Id > 0)
+                    {
+                        <a asp-action="Create" class="block text-center text-sm text-gray-500 hover:text-gray-700 font-medium transition mt-3">
+                            Cancel — Add New Product
+                        </a>
+                    }
+                </form>
+
+                <div class="mt-6 text-center">
+                    <a asp-controller="Store" asp-action="Index" class="text-sm text-gray-500 hover:text-gray-700 font-medium transition">
+                        Back to Store
+                    </a>
+                </div>
+            </div>
+
+            <!-- Product List -->
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <h3 class="text-xl font-bold text-gray-800 mb-6">Existing Products</h3>
+
+                @if (!products.Any())
+                {
+                    <div class="text-center py-12">
+                        <p class="text-gray-400 text-lg">No products yet.</p>
+                        <p class="text-gray-400 text-sm mt-2">Add your first product using the form.</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="space-y-3 max-h-[600px] overflow-y-auto pr-2">
+                        @foreach (var p in products)
+                        {
+                            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100">
+                                <div class="min-w-0">
+                                    <div class="font-semibold text-gray-800 truncate">@p.Name</div>
+                                    <div class="text-sm text-gray-500 mt-0.5">₱@p.Price.ToString("N2") • Stock: @p.StockQty</div>
+                                </div>
+                                <div class="flex gap-2 ml-4 shrink-0">
+                                    <a asp-action="Create" asp-route-id="@p.Id"
+                                       class="px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg text-sm hover:bg-blue-100 transition font-medium">
+                                        Edit
+                                    </a>
+                                    <button type="button" onclick="openDeleteModal(@p.Id, '@p.Name.Replace("'", "\\'")')"
+                                            class="px-3 py-1.5 bg-red-50 text-red-700 rounded-lg text-sm hover:bg-red-100 transition font-medium">
+                                        Delete
+                                    </button>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6 text-center">
+        <div class="inline-flex items-center justify-center w-12 h-12 bg-red-100 rounded-full mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+        </div>
+        <h3 class="text-lg font-bold text-gray-800 mb-2">Delete Product?</h3>
+        <p class="text-gray-500 mb-6">Are you sure you want to delete <strong id="deleteProductName"></strong>?</p>
+
+        <form id="deleteForm" asp-action="Delete" method="post" class="flex gap-3 justify-center">
+            <input type="hidden" name="id" id="deleteProductId" />
+            <button type="button" onclick="closeDeleteModal()" class="px-5 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition font-medium">
+                Cancel
+            </button>
+            <button type="submit" class="px-5 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition font-medium">
+                Delete
+            </button>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        function openDeleteModal(id, name) {
+            document.getElementById('deleteProductId').value = id;
+            document.getElementById('deleteProductName').textContent = name;
+            document.getElementById('deleteModal').classList.remove('hidden');
+            document.getElementById('deleteModal').classList.add('flex');
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').classList.remove('flex');
+            document.getElementById('deleteModal').classList.add('hidden');
+        }
+
+        // Close modal when clicking outside
+        document.addEventListener('click', function(event) {
+            if (event.target.id === 'deleteModal') {
+                closeDeleteModal();
+            }
+        });
+    </script>
+}
+```
+
+### How It Works
+
+- **Two-column layout:** The form is on the left, the product list is on the right (on large screens)
+- **Stats cards:** Now show the real `products.Count` for "Total Products"
+- **Edit button:** Links to `/Admin/Create?id=X` which loads that product into the form
+- **Delete button:** Opens a confirmation modal with the product name
+- **Form adapts:** Title and button text change between "Add" and "Edit" mode based on `Model.Id`
+- **Hidden `Id` field:** When editing, this tells the POST action which product to update
+- **Cancel link:** When editing, a link lets you switch back to "Add New Product" mode
+
+### Important Notes
+
+- `asp-route-id="@p.Id"` generates the URL `/Admin/Create?id=5` automatically
+- The `Delete` action uses `[HttpPost]` for safety — never use `[HttpGet]` for delete operations
+- `Replace("'", "\\'")` escapes single quotes in product names so the JavaScript doesn't break
+- After any create, update, or delete, the controller redirects back to `Create` so the list refreshes
+
+---
+
+## Summary of New Changes
+
+| File | Change |
+|---|---|
+| `Models/ProductCreateViewModel.cs` | Added `Id` property for edit mode |
+| `Controllers/AdminController.cs` | `Create` action now handles both create and update; added `Delete` action |
+| `Views/Admin/Create.cshtml` | Two-column layout with form + product list; Edit/Delete buttons; delete confirmation modal |
