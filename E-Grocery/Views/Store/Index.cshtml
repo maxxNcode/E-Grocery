@@ -23,7 +23,7 @@
                 {
                     <div onclick="openModal(@product.Id)" class="bg-white rounded-2xl shadow-sm hover:shadow-md transition p-5 cursor-pointer">
                         <div class="h-40 bg-gray-100 rounded-xl mb-4 flex items-center justify-center overflow-hidden">
-                            @if (!string.IsNullOrEmpty(product.ImageUrl))
+                            @if (product.ImageUrl != null && product.ImageUrl != "")
                             {
                                 <img src="@product.ImageUrl" alt="@product.Name" class="h-full w-full object-cover" />
                             }
@@ -48,7 +48,7 @@
                             <button onclick="closeModal(@product.Id)" class="absolute top-3 right-3 text-gray-400 hover:text-gray-600 text-xl font-bold">&times;</button>
 
                             <div class="h-48 bg-gray-100 rounded-xl mb-4 flex items-center justify-center overflow-hidden">
-                                @if (!string.IsNullOrEmpty(product.ImageUrl))
+                                @if (product.ImageUrl != null && product.ImageUrl != "")
                                 {
                                     <img src="@product.ImageUrl" alt="@product.Name" class="h-full w-full object-cover" />
                                 }

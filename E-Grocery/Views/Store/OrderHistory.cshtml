@@ -1,0 +1,51 @@
+@model List<E_Grocery.Models.Order>
+
+@{
+    ViewData["Title"] = "Order History";
+}
+
+<div class="min-h-[calc(100vh-120px)] bg-gray-50 px-4 py-8">
+    <div class="max-w-3xl mx-auto">
+        <h1 class="text-2xl font-bold text-gray-800 mb-6">Order History</h1>
+
+        @if (Model.Count == 0)
+        {
+            <div class="bg-white rounded-2xl shadow-sm p-12 text-center">
+                <p class="text-gray-400 text-lg">No orders yet.</p>
+                <a asp-action="Index" class="inline-block mt-4 text-[#2e7d32] font-medium hover:underline">Browse Products</a>
+            </div>
+        }
+        else
+        {
+            <div class="space-y-3">
+                @foreach (var order in Model)
+                {
+                    <div class="bg-white rounded-xl shadow-sm p-5">
+                        <div class="flex justify-between items-start mb-3">
+                            <div>
+                                <div class="font-semibold text-gray-800">@order.ProductName</div>
+                                <div class="text-sm text-gray-500">@order.OrderDate.ToString("MMM dd, yyyy hh:mm tt")</div>
+                            </div>
+                            <div class="text-right">
+                                <div class="font-bold text-[#2e7d32]">₱@order.Total.ToString("N2")</div>
+                                <div class="text-xs text-gray-400">@order.Quantity x ₱@order.Price.ToString("N2")</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 text-xs text-green-600 bg-green-50 rounded-lg px-3 py-1.5 w-fit">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                            Completed
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <div class="mt-6 text-center">
+                <a asp-action="Index" class="text-sm text-gray-500 hover:text-gray-700 font-medium transition">
+                    Continue Shopping
+                </a>
+            </div>
+        }
+    </div>
+</div>

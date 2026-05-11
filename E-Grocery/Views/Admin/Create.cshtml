@@ -1,9 +1,13 @@
 @model E_Grocery.Models.ProductCreateViewModel
 
 @{
-    var isEdit = Model != null && Model.Id > 0;
-    ViewData[index: "Title"] = isEdit ? "Edit Product" : "Add New Product";
-    var products = ViewData["Products"] as List<E_Grocery.Models.Product> ?? new List<E_Grocery.Models.Product>();
+    var isEdit = Model.Id > 0;
+    ViewData["Title"] = isEdit ? "Edit Product" : "Add New Product";
+    var products = ViewData["Products"] as List<E_Grocery.Models.Product>;
+    if (products == null)
+    {
+        products = new List<E_Grocery.Models.Product>();
+    }
 }
 
 <div class="min-h-[calc(100vh-120px)] bg-gray-50 px-4 py-8">
@@ -34,12 +38,20 @@
                     </p>
                 </div>
 
-                <form asp-action="Create" method="post" class="space-y-5">
+                <form asp-action="Create" method="post" enctype="multipart/form-data" class="space-y-5">
                     @if (isEdit)
                     {
                         <input type="hidden" asp-for="Id" />
                     }
                     <div asp-validation-summary="ModelOnly" class="text-red-500 text-sm"></div>
+
+                    @if (isEdit && Model.Image != null && Model.Image != "")
+                    {
+                        <div class="text-center">
+                            <img src="@Model.Image" alt="Current product image" class="h-32 w-32 object-cover rounded-xl mx-auto border border-gray-200" />
+                            <p class="text-xs text-gray-400 mt-1">Current image</p>
+                        </div>
+                    }
 
                     <div>
                         <label asp-for="Name" class="block text-sm font-medium text-gray-700 mb-1"></label>
@@ -60,8 +72,14 @@
                     </div>
 
                     <div>
-                        <label asp-for="Image" class="block text-sm font-medium text-gray-700 mb-1"></label>
-                        <input asp-for="Image" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2e7d32] focus:border-transparent transition" placeholder="e.g. /images/apple.jpg" />
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Product Image</label>
+                        <input type="file" name="ProductImage" accept="image/*" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2e7d32] focus:border-transparent transition text-sm" />
+                        <p class="text-xs text-gray-400 mt-1">Upload an image file (optional — you can also type an image URL below)</p>
+                    </div>
+
+                    <div>
+                        <label asp-for="Image" class="block text-sm font-medium text-gray-700 mb-1">Or Image URL</label>
+                        <input asp-for="Image" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2e7d32] focus:border-transparent transition text-sm" placeholder="e.g. /images/apple.jpg or https://..." />
                         <span asp-validation-for="Image" class="text-red-500 text-xs mt-1 block"></span>
                     </div>
 
@@ -107,9 +125,19 @@
                         @foreach (var p in products)
                         {
                             <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100">
-                                <div class="min-w-0">
-                                    <div class="font-semibold text-gray-800 truncate">@p.Name</div>
-                                    <div class="text-sm text-gray-500 mt-0.5">₱@p.Price.ToString("N2") • Stock: @p.StockQty</div>
+                                <div class="flex items-center gap-3 min-w-0">
+                                    @if (p.ImageUrl != null && p.ImageUrl != "")
+                                    {
+                                        <img src="@p.ImageUrl" alt="@p.Name" class="h-12 w-12 object-cover rounded-lg border border-gray-200 shrink-0" />
+                                    }
+                                    else
+                                    {
+                                        <div class="h-12 w-12 bg-gray-200 rounded-lg flex items-center justify-center shrink-0 text-xs text-gray-400">No img</div>
+                                    }
+                                    <div class="min-w-0">
+                                        <div class="font-semibold text-gray-800 truncate">@p.Name</div>
+                                        <div class="text-sm text-gray-500 mt-0.5">₱@p.Price.ToString("N2") • Stock: @p.StockQty</div>
+                                    </div>
                                 </div>
                                 <div class="flex gap-2 ml-4 shrink-0">
                                     <a asp-action="Edit" asp-route-id="@p.Id"

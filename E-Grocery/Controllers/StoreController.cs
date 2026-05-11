@@ -77,13 +77,77 @@ namespace E_Grocery.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult PlaceOrder()
         {
+            var userEmail = HttpContext.Session.GetString("UserEmail");
+            if (userEmail == null || userEmail == "")
+            {
+                userEmail = "Guest";
+            }
             var cartItems = _context.CartItems.ToList();
+
+            foreach (var item in cartItems)
+            {
+                var order = new Order
+                {
+                    UserEmail = userEmail,
+                    ProductName = item.ProductName,
+                    Price = item.Price,
+                    Quantity = item.Quantity,
+                    Total = item.Price * item.Quantity,
+                    OrderDate = DateTime.Now
+                };
+                _context.Orders.Add(order);
+            }
+
             foreach (var item in cartItems)
             {
                 _context.CartItems.Remove(item);
             }
+
             _context.SaveChanges();
             return View("OrderComplete");
+        }
+
+        public IActionResult OrderHistory()
+        {
+            var userEmail = HttpContext.Session.GetString("UserEmail");
+            if (userEmail == null || userEmail == "")
+            {
+                userEmail = "Guest";
+            }
+            var allOrders = _context.Orders.ToList();
+            var userOrders = new List<Order>();
+            foreach (var o in allOrders)
+            {
+                if (o.UserEmail == userEmail)
+                {
+                    userOrders.Add(o);
+                }
+            }
+            return View(userOrders);
+        }
+
+        public IActionResult Search(string searchTerm)
+        {
+            var allProducts = _context.Products.ToList();
+            var filtered = new List<Product>();
+
+            if (searchTerm == null || searchTerm == "")
+            {
+                filtered = allProducts;
+            }
+            else
+            {
+                var term = searchTerm.ToLower();
+                foreach (var p in allProducts)
+                {
+                    if (p.Name != null && p.Name.ToLower().Contains(term))
+                    {
+                        filtered.Add(p);
+                    }
+                }
+            }
+
+            return View("Index", filtered);
         }
     }
 }

@@ -38,6 +38,7 @@ namespace E_Grocery.Controllers
 
                 if (user != null)
                 {
+                    HttpContext.Session.SetString("UserEmail", user.Email);
                     return RedirectToAction("Index", "Store");
                 }
 
@@ -71,6 +72,91 @@ namespace E_Grocery.Controllers
                 return RedirectToAction("Login");
             }
             return View(model);
+        }
+
+        public IActionResult Logout()
+        {
+            HttpContext.Session.Remove("UserEmail");
+            return RedirectToAction("Login");
+        }
+
+        [HttpGet]
+        public IActionResult Profile()
+        {
+            var email = HttpContext.Session.GetString("UserEmail");
+            if (email == null || email == "")
+            {
+                return RedirectToAction("Login");
+            }
+
+            var users = _context.Users.ToList();
+            User user = null;
+            foreach (var u in users)
+            {
+                if (u.Email == email)
+                {
+                    user = u;
+                    break;
+                }
+            }
+
+            if (user == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            return View(user);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Profile(User model, IFormFile profilePicture)
+        {
+            var email = HttpContext.Session.GetString("UserEmail");
+            if (email == null || email == "")
+            {
+                return RedirectToAction("Login");
+            }
+
+            var users = _context.Users.ToList();
+            User user = null;
+            foreach (var u in users)
+            {
+                if (u.Email == email)
+                {
+                    user = u;
+                    break;
+                }
+            }
+
+            if (user == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            user.FullName = model.FullName;
+
+            if (profilePicture != null && profilePicture.Length > 0)
+            {
+                var ext = "";
+                var originalName = profilePicture.FileName;
+                if (originalName.Contains("."))
+                {
+                    ext = originalName.Substring(originalName.LastIndexOf("."));
+                }
+                var fileName = DateTime.Now.Ticks.ToString() + ext;
+                var filePath = Directory.GetCurrentDirectory() + "\\wwwroot\\images\\profiles\\" + fileName;
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    profilePicture.CopyTo(stream);
+                }
+
+                user.ProfilePicture = "/images/profiles/" + fileName;
+            }
+
+            _context.SaveChanges();
+            return RedirectToAction("Profile");
         }
     }
 }

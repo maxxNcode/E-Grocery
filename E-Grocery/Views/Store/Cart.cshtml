@@ -27,7 +27,7 @@
                 {
                     <div class="flex items-center gap-4 bg-white rounded-xl shadow-sm p-4">
                         <div class="h-16 w-16 bg-gray-100 rounded-lg flex-shrink-0 overflow-hidden">
-                            @if (!string.IsNullOrEmpty(item.ImageUrl))
+                            @if (item.ImageUrl != null && item.ImageUrl != "")
                             {
                                 <img src="@item.ImageUrl" alt="@item.ProductName" class="h-full w-full object-cover" />
                             }

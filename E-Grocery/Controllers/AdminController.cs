@@ -18,6 +18,7 @@ namespace E_Grocery.Controllers
         {
             ViewData["Products"] = _context.Products.ToList();
             ViewData["CartCount"] = _context.CartItems.ToList().Count;
+            ViewData["HideNav"] = true;
             return View();
         }
 
@@ -48,6 +49,7 @@ namespace E_Grocery.Controllers
                 };
                 ViewData["Products"] = _context.Products.ToList();
                 ViewData["CartCount"] = _context.CartItems.ToList().Count;
+                ViewData["HideNav"] = true;
                 return View("Create", model);
             }
 
@@ -60,6 +62,27 @@ namespace E_Grocery.Controllers
         {
             if (ModelState.IsValid)
             {
+                string imagePath = model.Image;
+
+                if (model.ProductImage != null && model.ProductImage.Length > 0)
+                {
+                    var ext = "";
+                    var originalName = model.ProductImage.FileName;
+                    if (originalName.Contains("."))
+                    {
+                        ext = originalName.Substring(originalName.LastIndexOf("."));
+                    }
+                    var fileName = DateTime.Now.Ticks.ToString() + ext;
+                    var filePath = Directory.GetCurrentDirectory() + "\\wwwroot\\images\\products\\" + fileName;
+
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        model.ProductImage.CopyTo(stream);
+                    }
+
+                    imagePath = "/images/products/" + fileName;
+                }
+
                 if (model.Id > 0)
                 {
                     // UPDATE existing product
@@ -79,7 +102,10 @@ namespace E_Grocery.Controllers
                         product.Name = model.Name;
                         product.Description = model.Description;
                         product.Price = model.Price;
-                        product.ImageUrl = model.Image;
+                        if (imagePath != null && imagePath != "")
+                        {
+                            product.ImageUrl = imagePath;
+                        }
                         product.StockQty = model.StockQty;
                         _context.SaveChanges();
                     }
@@ -92,7 +118,7 @@ namespace E_Grocery.Controllers
                         Name = model.Name,
                         Description = model.Description,
                         Price = model.Price,
-                        ImageUrl = model.Image,
+                        ImageUrl = imagePath,
                         StockQty = model.StockQty
                     };
                     _context.Products.Add(product);
