@@ -19,7 +19,8 @@ namespace E_Grocery.Controllers
             ViewData["Products"] = _context.Products.ToList();
             ViewData["CartCount"] = _context.CartItems.ToList().Count;
             ViewData["HideNav"] = true;
-            return View();
+            var model = new ProductCreateViewModel();
+            return View(model);
         }
 
         [HttpGet]
