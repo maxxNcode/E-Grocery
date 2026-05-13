@@ -12,8 +12,15 @@
         @if (!Model.Any())
         {
             <div class="text-center py-16">
-                <p class="text-gray-400 text-lg">No products available yet.</p>
-                <p class="text-gray-400 text-sm mt-2">Visit /Admin/Create to add your first product.</p>
+                @if (ViewBag.IsSearch == true)
+                {
+                    <p class="text-gray-400 text-lg">Product not found.</p>
+                }
+                else
+                {
+                    <p class="text-gray-400 text-lg">No products available yet.</p>
+                    <p class="text-gray-400 text-sm mt-2">Visit /Admin/Create to add your first product.</p>
+                }
             </div>
         }
         else
@@ -21,7 +28,7 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 @foreach (var product in Model)
                 {
-                    <div onclick="openModal(@product.Id)" class="bg-white rounded-2xl shadow-sm hover:shadow-md transition p-5 cursor-pointer">
+                    <div onclick="@(Context.Session.GetString("UserEmail") != null && Context.Session.GetString("UserEmail") != "" ? $"openModal({product.Id})" : "window.location.href='/Account/Login'")" class="bg-white rounded-2xl shadow-sm hover:shadow-md transition p-5 cursor-pointer flex flex-col justify-between">
                         <div class="h-40 bg-gray-100 rounded-xl mb-4 flex items-center justify-center overflow-hidden">
                             @if (product.ImageUrl != null && product.ImageUrl != "")
                             {
@@ -36,9 +43,18 @@
                         <p class="text-gray-500 text-sm mt-1 line-clamp-2">@product.Description</p>
                         <div class="flex items-center justify-between mt-4">
                             <span class="text-[#2e7d32] font-bold text-lg">₱@product.Price.ToString("N2")</span>
-                            <button onclick="event.stopPropagation(); openModal(@product.Id)" class="bg-[#2e7d32] text-white px-3 py-1.5 rounded-lg text-sm hover:bg-[#1b5e20] transition">
-                                Add to Cart
-                            </button>
+                            @if (Context.Session.GetString("UserEmail") != null && Context.Session.GetString("UserEmail") != "")
+                            {
+                                <button onclick="event.stopPropagation(); openModal(@product.Id)" class="bg-[#2e7d32] text-white px-3 py-1.5 rounded-lg text-sm hover:bg-[#1b5e20] transition">
+                                    Add to Cart
+                                </button>
+                            }
+                            else
+                            {
+                                <button onclick="window.location.href='/Account/Login'" class="bg-[#2e7d32] text-white px-3 py-1.5 rounded-lg text-sm hover:bg-[#1b5e20] transition">
+                                    Add to Cart
+                                </button>
+                            }
                         </div>
                     </div>
 
@@ -66,22 +82,31 @@
                                 <span>In Stock: <strong class="text-[#2e7d32]">@product.StockQty</strong></span>
                             </div>
 
-                            <div class="flex items-center gap-4 mb-4">
-                                <label class="text-sm font-medium text-gray-700">Quantity:</label>
-                                <div class="flex items-center border border-gray-300 rounded-lg overflow-hidden">
-                                    <button type="button" onclick="adjustQty(@product.Id, -1, @product.StockQty)" class="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold">-</button>
-                                    <input id="qty-@product.Id" type="number" value="1" min="1" max="@product.StockQty" readonly class="w-12 text-center py-1 border-x border-gray-300 text-sm" />
-                                    <button type="button" onclick="adjustQty(@product.Id, 1, @product.StockQty)" class="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold">+</button>
+@if (Context.Session.GetString("UserEmail") != null && Context.Session.GetString("UserEmail") != "")
+                            {
+                                <div class="flex items-center gap-4 mb-4">
+                                    <label class="text-sm font-medium text-gray-700">Quantity:</label>
+                                    <div class="flex items-center border border-gray-300 rounded-lg overflow-hidden">
+                                        <button type="button" onclick="adjustQty(@product.Id, -1, @product.StockQty)" class="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold">-</button>
+                                        <input id="qty-@product.Id" type="number" value="1" min="1" max="@product.StockQty" readonly class="w-12 text-center py-1 border-x border-gray-300 text-sm" />
+                                        <button type="button" onclick="adjustQty(@product.Id, 1, @product.StockQty)" class="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold">+</button>
+                                    </div>
                                 </div>
-                            </div>
 
-                            <form asp-action="AddToCart" method="post" class="mt-2">
-                                <input type="hidden" name="productId" value="@product.Id" />
-                                <input type="hidden" name="quantity" id="form-qty-@product.Id" value="1" />
-                                <button type="submit" class="w-full bg-[#2e7d32] text-white font-semibold py-2.5 rounded-lg hover:bg-[#1b5e20] transition duration-200 shadow-md">
-                                    Add to Cart — ₱@product.Price.ToString("N2")
+                                <form asp-action="AddToCart" method="post" class="mt-2">
+                                    <input type="hidden" name="productId" value="@product.Id" />
+                                    <input type="hidden" name="quantity" id="form-qty-@product.Id" value="1" />
+                                    <button type="submit" class="w-full bg-[#2e7d32] text-white font-semibold py-2.5 rounded-lg hover:bg-[#1b5e20] transition duration-200 shadow-md">
+                                        Add to Cart — ₱@product.Price.ToString("N2")
+                                    </button>
+                                </form>
+                            }
+                            else
+                            {
+                                <button onclick="window.location.href='/Account/Login'" class="w-full bg-[#2e7d32] text-white font-semibold py-2.5 rounded-lg hover:bg-[#1b5e20] transition duration-200 shadow-md">
+                                    Add to Cart
                                 </button>
-                            </form>
+                            }
                         </div>
                     </div>
                 }

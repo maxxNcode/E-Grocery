@@ -20,7 +20,7 @@ namespace E_Grocery.Models
         [StringLength(200, ErrorMessage = "Image URL cannot exceed 200 characters")]
         public string Image { get; set; } = string.Empty;
 
-        public IFormFile ProductImage { get; set; }
+        public IFormFile? ProductImage { get; set; }
 
         [Required(ErrorMessage = "Stock quantity is required")]
         [Range(0, 10000, ErrorMessage = "Stock must be between 0 and 10000")]

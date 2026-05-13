@@ -16,6 +16,8 @@ namespace E_Grocery.Controllers
         public IActionResult Index()
         {
             var products = _context.Products.ToList();
+            ViewBag.IsSearch = false;
+            ViewBag.SearchTerm = "";
             return View(products);
         }
 
@@ -29,6 +31,12 @@ namespace E_Grocery.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult AddToCart(int productId, int quantity)
         {
+            var userEmail = HttpContext.Session.GetString("UserEmail");
+            if (userEmail == null || userEmail == "")
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
             var products = _context.Products.ToList();
             Product product = null;
             foreach (var p in products)
@@ -83,9 +91,20 @@ namespace E_Grocery.Controllers
                 userEmail = "Guest";
             }
             var cartItems = _context.CartItems.ToList();
+            var products = _context.Products.ToList();
 
             foreach (var item in cartItems)
             {
+                foreach (var p in products)
+                {
+                    if (p.Id == item.ProductId)
+                    {
+                        p.StockQty -= item.Quantity;
+                        if (p.StockQty < 0) p.StockQty = 0;
+                        break;
+                    }
+                }
+
                 var order = new Order
                 {
                     UserEmail = userEmail,
@@ -134,6 +153,7 @@ namespace E_Grocery.Controllers
             if (searchTerm == null || searchTerm == "")
             {
                 filtered = allProducts;
+                ViewBag.IsSearch = false;
             }
             else
             {
@@ -145,6 +165,8 @@ namespace E_Grocery.Controllers
                         filtered.Add(p);
                     }
                 }
+                ViewBag.IsSearch = true;
+                ViewBag.SearchTerm = searchTerm;
             }
 
             return View("Index", filtered);
